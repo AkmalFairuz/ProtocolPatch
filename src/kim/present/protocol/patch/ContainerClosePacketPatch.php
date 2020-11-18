@@ -23,25 +23,14 @@
 
 declare(strict_types=1);
 
-namespace kim\present\protocol\packet;
+namespace kim\present\protocol\patch;
 
-use kim\present\protocol\patch\MoveActorDeltaPacketPatch;
-use pocketmine\network\mcpe\protocol\DataPacket;
-use pocketmine\network\mcpe\protocol\MoveActorDeltaPacket;
+trait ContainerClosePacketPatch{
+    /** @var bool */
+    public $serverInitiated = false;
 
-class PatchedMoveActorDeltaPacket extends MoveActorDeltaPacket implements PatchedPacket{
-    use MoveActorDeltaPacketPatch;
-
-    /** @param MoveActorDeltaPacket $from */
-    public static function from(DataPacket $from) : PatchedPacket{
-        $packet = new self;
-        $packet->flags = $from->flags;
-        $packet->xDiff = $from->xDiff;
-        $packet->yDiff = $from->yDiff;
-        $packet->zDiff = $from->zDiff;
-        $packet->xRot = $from->xRot;
-        $packet->yRot = $from->yRot;
-        $packet->zRot = $from->zRot;
-        return $packet;
+    protected function encodePayload(){
+        $this->putByte($this->windowId);
+        $this->putBool($this->serverInitiated); // added
     }
 }

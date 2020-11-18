@@ -25,10 +25,13 @@ declare(strict_types=1);
 
 namespace kim\present\protocol\packet;
 
+use kim\present\protocol\patch\FixSkinStreamPatch;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\PlayerListPacket;
 
 class PatchedPlayerListPacket extends PlayerListPacket implements PatchedPacket{
+    use FixSkinStreamPatch;
+
     /** @param PlayerListPacket $from */
     public static function from(DataPacket $from) : PatchedPacket{
         $packet = new self;

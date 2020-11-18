@@ -25,10 +25,13 @@ declare(strict_types=1);
 
 namespace kim\present\protocol\packet;
 
+use kim\present\protocol\patch\ResourcePackStackPacketPatch;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\ResourcePackStackPacket;
 
 class PatchedResourcePackStackPacket extends ResourcePackStackPacket implements PatchedPacket{
+    use ResourcePackStackPacketPatch;
+
     /** @param ResourcePackStackPacket $from */
     public static function from(DataPacket $from) : PatchedPacket{
         $packet = new self;

@@ -25,10 +25,13 @@ declare(strict_types=1);
 
 namespace kim\present\protocol\packet;
 
+use kim\present\protocol\patch\AddFramePatch;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\UpdateAttributesPacket;
 
 class PatchedUpdateAttributesPacket extends UpdateAttributesPacket implements PatchedPacket{
+    use AddFramePatch;
+
     /** @param UpdateAttributesPacket $from */
     public static function from(DataPacket $from) : PatchedPacket{
         $packet = new self;

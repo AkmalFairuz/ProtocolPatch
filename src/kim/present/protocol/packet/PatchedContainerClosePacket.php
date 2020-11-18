@@ -25,10 +25,13 @@ declare(strict_types=1);
 
 namespace kim\present\protocol\packet;
 
+use kim\present\protocol\patch\ContainerClosePacketPatch;
 use pocketmine\network\mcpe\protocol\ContainerClosePacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 
 class PatchedContainerClosePacket extends ContainerClosePacket implements PatchedPacket{
+    use ContainerClosePacketPatch;
+
     /** @param ContainerClosePacket $from */
     public static function from(DataPacket $from) : PatchedPacket{
         $packet = new self;
