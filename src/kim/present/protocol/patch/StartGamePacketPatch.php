@@ -95,14 +95,10 @@ trait StartGamePacketPatch{
 
         $this->putUnsignedVarInt(0); // added: Custom blocks
         // removed: $this->put((new NetworkLittleEndianNBTStream())->write($this->blockTable));
-        if($this->itemTable === null){
-            if(self::$itemTableCache === null){
-                self::$itemTableCache = self::serializeItemTable(json_decode(file_get_contents(RESOURCE_PATH . "/vanilla/item_id_map.json"), true));
-            }
-            $this->put(self::$itemTableCache);
-        }else{
-            $this->put(self::serializeItemTable($this->itemTable));
+        if(self::$itemTableCache === null){
+            self::$itemTableCache = self::serializeItemTable(json_decode(file_get_contents(RESOURCE_PATH . "/vanilla/item_id_map.json"), true));
         }
+        $this->put(self::$itemTableCache);
 
         $this->putString($this->multiplayerCorrelationId);
         $this->putBool($this->enableNewInventorySystem);
