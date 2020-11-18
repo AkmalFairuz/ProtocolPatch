@@ -1,0 +1,9 @@
+---
+name: ProtocolPatch
+main: kim\present\protocol\ProtocolPatch
+version: 0.0.1
+api: [ 3.0.0 ]
+author: PresentKim
+description: Patch for 419 protocol of MCBE 1.16.100
+load: STARTUP
+...
