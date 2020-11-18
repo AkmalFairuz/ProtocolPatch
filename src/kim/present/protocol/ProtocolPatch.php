@@ -29,6 +29,7 @@ use kim\present\protocol\packet\PatchedContainerClosePacket;
 use kim\present\protocol\packet\PatchedMoveActorDeltaPacket;
 use kim\present\protocol\packet\PatchedMovePlayerPacket;
 use kim\present\protocol\packet\PatchedPacket;
+use kim\present\protocol\packet\PatchedPlayerAuthInputPacket;
 use kim\present\protocol\packet\PatchedPlayerListPacket;
 use kim\present\protocol\packet\PatchedPlayerSkinPacket;
 use kim\present\protocol\packet\PatchedResourcePackStackPacket;
@@ -57,6 +58,7 @@ class ProtocolPatch extends PluginBase implements Listener{
         ProtocolInfo::UPDATE_ATTRIBUTES_PACKET => PatchedUpdateAttributesPacket::class,
         ProtocolInfo::PLAYER_LIST_PACKET => PatchedPlayerListPacket::class,
         ProtocolInfo::PLAYER_SKIN_PACKET => PatchedPlayerSkinPacket::class,
+        ProtocolInfo::PLAYER_AUTH_INPUT_PACKET => PatchedPlayerAuthInputPacket::class,
     ];
 
     /** @var bool */
@@ -80,6 +82,12 @@ class ProtocolPatch extends PluginBase implements Listener{
                 $packet->protocol = ProtocolInfo::CURRENT_PROTOCOL;
             }else{
                 $packet->protocol = ProtocolInfo::CURRENT_PROTOCOL - 1; //for Prevent other protocol
+            }
+        }elseif(!$packet instanceof BatchPacket){
+            if($packet instanceof PlayerAuthInputPacket){
+                $event->setCancelled(true);
+                return;
+            }
             }
         }
     }
