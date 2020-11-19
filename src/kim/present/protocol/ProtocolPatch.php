@@ -70,29 +70,13 @@ class ProtocolPatch extends PluginBase implements Listener{
     /** @var bool */
     private $ignore = false;
 
-    /** @throws \ReflectionException */
     public function onLoad(){
         foreach(self::PATHED_PACKETS as $pid => $packetClass){
             PacketPool::registerPacket(new $packetClass());
         }
 
-        //Remove randomize
-        $tag = (new LittleEndianNBTStream())->read(stream_get_contents($this->getResource("runtime_block_states.dat")));
-        if(!($tag instanceof ListTag) or $tag->getTagType() !== NBT::TAG_Compound){ //this is a little redundant currently, but good for auto complete and makes phpstan happy
-            throw new \RuntimeException("Invalid blockstates table, expected TAG_List<TAG_Compound> root");
-        }
-        /** @var CompoundTag[]| $table */
-        $list = $tag->getValue();
-        $reflectionClass = new \ReflectionClass(RuntimeBlockMapping::class);
-        /** @see RuntimeBlockMapping::$bedrockKnownStates */
-        $bedrockKnownStatesProp = $reflectionClass->getProperty("bedrockKnownStates");
-        $bedrockKnownStatesProp->setAccessible(true);
-        $bedrockKnownStatesProp->setValue(null, $list);
-
-        /** @see RuntimeBlockMapping::setupLegacyMappings() */
-        $setupLegacyMappingsMeth = $reflectionClass->getMethod("setupLegacyMappings");
-        $setupLegacyMappingsMeth->setAccessible(true);
-        $setupLegacyMappingsMeth->invoke(null);
+        //Update runtime block table, and remove shuffling
+        $this->updateRuntimeBlockTable();
     }
 
     public function onEnable(){
@@ -163,5 +147,25 @@ class ProtocolPatch extends PluginBase implements Listener{
         $player->sendDataPacket($packetClass::from($packet));
         $this->ignore = false;
         return true;
+    }
+
+    /** @throws \ReflectionException */
+    public function updateRuntimeBlockTable() : void{
+        /** @var CompoundTag[]| $table */
+        $table = (new LittleEndianNBTStream())->read(stream_get_contents($this->getResource("runtime_block_states.dat")));
+        if(!($table instanceof ListTag) or $table->getTagType() !== NBT::TAG_Compound){ //this is a little redundant currently, but good for auto complete and makes phpstan happy
+            throw new \RuntimeException("Invalid blockstates table, expected TAG_List<TAG_Compound> root");
+        }
+        $list = $table->getValue();
+        $reflectionClass = new \ReflectionClass(RuntimeBlockMapping::class);
+        /** @see RuntimeBlockMapping::$bedrockKnownStates */
+        $bedrockKnownStatesProp = $reflectionClass->getProperty("bedrockKnownStates");
+        $bedrockKnownStatesProp->setAccessible(true);
+        $bedrockKnownStatesProp->setValue(null, $list);
+
+        /** @see RuntimeBlockMapping::setupLegacyMappings() */
+        $setupLegacyMappingsMeth = $reflectionClass->getMethod("setupLegacyMappings");
+        $setupLegacyMappingsMeth->setAccessible(true);
+        $setupLegacyMappingsMeth->invoke(null);
     }
 }
