@@ -112,7 +112,6 @@ class ProtocolPatch extends PluginBase implements Listener{
                 $event->setCancelled(true);
                 return;
             }
-            }
         }
     }
 
