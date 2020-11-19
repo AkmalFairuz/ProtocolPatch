@@ -29,6 +29,11 @@ trait ContainerClosePacketPatch{
     /** @var bool */
     public $serverInitiated = false;
 
+    protected function decodePayload(){
+        $this->windowId = $this->getByte();
+        $this->serverInitiated = $this->getBool(); // added
+    }
+
     protected function encodePayload(){
         $this->putByte($this->windowId);
         $this->putBool($this->serverInitiated); // added
