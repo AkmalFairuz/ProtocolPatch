@@ -88,10 +88,9 @@ trait StartGamePacketPatch{
         $this->putString($this->worldName);
         $this->putString($this->premiumWorldTemplateId);
         $this->putBool($this->isTrial);
-        // removed: $this->putBool($this->isMovementServerAuthoritative);
-        $this->putVarInt(2);   // added: ????
-
+        $this->putBool($this->isMovementServerAuthoritative);
         $this->putLLong($this->currentTick);
+
         $this->putVarInt($this->enchantmentSeed);
 
         $this->putUnsignedVarInt(0); // added: Custom blocks
