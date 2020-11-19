@@ -39,6 +39,11 @@ use kim\present\protocol\packet\PatchedUpdateAttributesPacket;
 use pocketmine\event\Listener;
 use pocketmine\event\server\DataPacketReceiveEvent;
 use pocketmine\event\server\DataPacketSendEvent;
+use pocketmine\nbt\LittleEndianNBTStream;
+use pocketmine\nbt\NBT;
+use pocketmine\nbt\tag\CompoundTag;
+use pocketmine\nbt\tag\ListTag;
+use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
@@ -64,10 +69,29 @@ class ProtocolPatch extends PluginBase implements Listener{
     /** @var bool */
     private $ignore = false;
 
+    /** @throws \ReflectionException */
     public function onLoad(){
         foreach(self::PATHED_PACKETS as $pid => $packetClass){
             PacketPool::registerPacket(new $packetClass());
         }
+
+        //Remove randomize
+        $tag = (new LittleEndianNBTStream())->read(stream_get_contents($this->getResource("runtime_block_states.dat")));
+        if(!($tag instanceof ListTag) or $tag->getTagType() !== NBT::TAG_Compound){ //this is a little redundant currently, but good for auto complete and makes phpstan happy
+            throw new \RuntimeException("Invalid blockstates table, expected TAG_List<TAG_Compound> root");
+        }
+        /** @var CompoundTag[]| $table */
+        $list = $tag->getValue();
+        $reflectionClass = new \ReflectionClass(RuntimeBlockMapping::class);
+        /** @see RuntimeBlockMapping::$bedrockKnownStates */
+        $bedrockKnownStatesProp = $reflectionClass->getProperty("bedrockKnownStates");
+        $bedrockKnownStatesProp->setAccessible(true);
+        $bedrockKnownStatesProp->setValue(null, $list);
+
+        /** @see RuntimeBlockMapping::setupLegacyMappings() */
+        $setupLegacyMappingsMeth = $reflectionClass->getMethod("setupLegacyMappings");
+        $setupLegacyMappingsMeth->setAccessible(true);
+        $setupLegacyMappingsMeth->invoke(null);
     }
 
     public function onEnable(){
