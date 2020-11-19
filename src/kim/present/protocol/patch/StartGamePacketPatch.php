@@ -25,9 +25,7 @@ declare(strict_types=1);
 
 namespace kim\present\protocol\patch;
 
-use pocketmine\network\mcpe\NetworkBinaryStream;
-
-use const pocketmine\RESOURCE_PATH;
+use kim\present\protocol\ProtocolPatch;
 
 trait StartGamePacketPatch{
     /** @var string|null */
@@ -95,28 +93,9 @@ trait StartGamePacketPatch{
 
         $this->putUnsignedVarInt(0); // added: Custom blocks
         // removed: $this->put((new NetworkLittleEndianNBTStream())->write($this->blockTable));
-        if(self::$itemTableCache === null){
-            self::$itemTableCache = self::serializeItemTable(json_decode(file_get_contents(RESOURCE_PATH . "/vanilla/item_id_map.json"), true));
-        }
-        $this->put(self::$itemTableCache);
+        $this->put(ProtocolPatch::$itemTableCache);
 
         $this->putString($this->multiplayerCorrelationId);
         $this->putBool($this->enableNewInventorySystem);
-    }
-
-    /**
-     * @param int[] $table
-     *
-     * @phpstan-param array<string, int> $table
-     */
-    private static function serializeItemTable(array $table) : string{
-        $stream = new NetworkBinaryStream();
-        $stream->putUnsignedVarInt(count($table));
-        foreach($table as $name => $legacyId){
-            $stream->putString($name);
-            $stream->putLShort($legacyId);
-            $stream->putBool(false); // added: Component item
-        }
-        return $stream->getBuffer();
     }
 }

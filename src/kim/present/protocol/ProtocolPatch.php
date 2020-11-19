@@ -44,6 +44,7 @@ use pocketmine\nbt\NBT;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\ListTag;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
+use pocketmine\network\mcpe\NetworkBinaryStream;
 use pocketmine\network\mcpe\protocol\BatchPacket;
 use pocketmine\network\mcpe\protocol\DataPacket;
 use pocketmine\network\mcpe\protocol\LoginPacket;
@@ -67,6 +68,9 @@ class ProtocolPatch extends PluginBase implements Listener{
         ProtocolInfo::PLAYER_AUTH_INPUT_PACKET => PatchedPlayerAuthInputPacket::class,
     ];
 
+    /** @var string|null */
+    public static $itemTableCache = null;
+
     /** @var bool */
     private $ignore = false;
 
@@ -75,8 +79,9 @@ class ProtocolPatch extends PluginBase implements Listener{
             PacketPool::registerPacket(new $packetClass());
         }
 
-        //Update runtime block table, and remove shuffling
+        //Update runtime tables, and remove shuffling
         $this->updateRuntimeBlockTable();
+        $this->updateRuntimeItemTable();
     }
 
     public function onEnable(){
@@ -167,5 +172,18 @@ class ProtocolPatch extends PluginBase implements Listener{
         $setupLegacyMappingsMeth = $reflectionClass->getMethod("setupLegacyMappings");
         $setupLegacyMappingsMeth->setAccessible(true);
         $setupLegacyMappingsMeth->invoke(null);
+    }
+
+    public function updateRuntimeItemTable() : void{
+        /** @var int[][]|string[][] $table */
+        $table = json_decode(stream_get_contents($this->getResource("runtime_item_ids.json")), true);
+        $stream = new NetworkBinaryStream();
+        $stream->putUnsignedVarInt(count($table));
+        foreach($table as $item){
+            $stream->putString($item["name"]);
+            $stream->putLShort($item["id"]);
+            $stream->putBool(false); // added: Component item
+        }
+        self::$itemTableCache = $stream->getBuffer();
     }
 }
