@@ -25,13 +25,18 @@ declare(strict_types=1);
 
 namespace kim\present\protocol\patch;
 
+use pocketmine\utils\BinaryDataException;
+
 trait AddFramePatch{
     /** @var int */
     public $frame = 0; //TODO: What is this? It means Animation frame?
 
     public function decodePayload(){
         parent::decodePayload();
-        $this->frame = $this->getUnsignedVarLong(); // added: frame?
+        try{
+            $this->frame = $this->getUnsignedVarLong(); // added: frame?
+        }catch(BinaryDataException $e){
+        }
     }
 
     protected function encodePayload(){
